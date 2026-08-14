@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Today's Snack Shop</title>
+    <link rel="stylesheet" href="stylesheet.css">
+</head>
+
+<body>
+
+    <header class="site-header">
+        <h1>🍪 The Snack Shack</h1>
+        <p class="tagline">Your daily dose of delicious snacks — fresh, affordable, and ready to grab!</p>
+        <nav class="header-nav">
+            <a href="#menu" class="nav-link">View Menu</a>
+            <a href="#pickup" class="nav-link">Pickup Info</a>
+        </nav>
+    </header>
+
+    <section class="menu-section" id="menu">
+        <h2>Today's Menu</h2>
+        <p class="menu-subtitle">Click on items to add them to your order</p>
+        <div class="menu-grid">
+
+            <div class="menu-item" data-name="Chips Ahoy! Cookies" data-price="2.50">
+                <img src="images/chips-ahoy-cookies.png" alt="Chips Ahoy! Chocolate Chip Cookies">
+                <div class="item-info">
+                    <h3 class="item-name">Chips Ahoy! Cookies</h3>
+                    <p class="item-price">$2.50</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Lay's Classic Chips" data-price="1.75">
+                <img src="images/lays-classic-chips.png" alt="Lay's Classic Potato Chips">
+                <div class="item-info">
+                    <h3 class="item-name">Lay's Classic Chips</h3>
+                    <p class="item-price">$1.75</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Nature Valley Granola Bars" data-price="3.00">
+                <img src="images/nature-valley-granola.png" alt="Nature Valley Crunchy Granola Bars">
+                <div class="item-info">
+                    <h3 class="item-name">Nature Valley Granola Bars</h3>
+                    <p class="item-price">$3.00</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Fresh Fruit Mix" data-price="4.00">
+                <img src="images/fresh-fruit-mix.png" alt="Fresh Cut Fruit Mix">
+                <div class="item-info">
+                    <h3 class="item-name">Fresh Fruit Mix</h3>
+                    <p class="item-price">$4.00</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Goldfish Cheese Crackers" data-price="2.25">
+                <img src="images/goldfish-crackers.png" alt="Pepperidge Farm Goldfish Crackers">
+                <div class="item-info">
+                    <h3 class="item-name">Goldfish Cheese Crackers</h3>
+                    <p class="item-price">$2.25</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Chobani Yogurt Parfait" data-price="4.50">
+                <img src="images/chobani-yogurt-parfait.png" alt="Chobani Yogurt Parfait with Granola and Berries">
+                <div class="item-info">
+                    <h3 class="item-name">Chobani Yogurt Parfait</h3>
+                    <p class="item-price">$4.50</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Trader Joe's Trail Mix" data-price="3.50">
+                <img src="images/trail-mix.png" alt="Trader Joe's Trail Mix">
+                <div class="item-info">
+                    <h3 class="item-name">Trader Joe's Trail Mix</h3>
+                    <p class="item-price">$3.50</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+            <div class="menu-item" data-name="Little Debbie Brownies" data-price="3.00">
+                <img src="images/little-debbie-brownies.png" alt="Little Debbie Cosmic Brownies">
+                <div class="item-info">
+                    <h3 class="item-name">Little Debbie Brownies</h3>
+                    <p class="item-price">$3.00</p>
+                    <button class="add-btn">Add to Order</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="pickup-banner" id="pickup">
+        <h2>Pickup Information</h2>
+        <p class="pickup-details">📍 Location: <strong>Room 214</strong></p>
+        <p class="pickup-details">🕐 Time: <strong>12:15–12:45 PM</strong> (Lunch Period)</p>
+        <p class="pickup-details">📅 Days: <strong>Monday – Friday</strong> (School Weekdays)</p>
+        <p class="pickup-note">Pickup is available every school weekday. Please have your order ready during the designated time. See you there!</p>
+    </section>
+
+    <footer class="site-footer">
+        <p>&copy; 2024 The Snack Shack | Made with ❤️ for students</p>
+    </footer>
+
+    <div class="cart-bar" id="cartBar">
+        <div class="cart-info">
+            <span id="cartCount">0 items</span>
+            <span class="cart-total">Total: <strong id="cartTotal">$0.00</strong></span>
+        </div>
+        <button class="cart-btn" id="checkoutBtn">Checkout</button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2>Your Order</h2>
+            <div id="orderSummary"></div>
+            <div class="modal-footer">
+                <p class="modal-total">Total: <strong id="modalTotal">$0.00</strong></p>
+                <p class="modal-pickup">📍 Pick up at <strong>Room 214</strong>, <strong>12:15–12:45 PM</strong>, Mon–Fri</p>
+                <button class="modal-btn" id="closeModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+<script src="script.js"></script>
+
+</html>
