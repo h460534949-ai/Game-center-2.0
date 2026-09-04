@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - Game Zone</title>
+    <link rel="stylesheet" href="stylesheet.css">
+    <style>
+        .coins-display {
+            text-align: center;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .shop-section {
+            margin-bottom: 32px;
+        }
+
+        .shop-section h2 {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #2a2a4a;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .shop-item {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-4px);
+            border-color: #00d4ff;
+        }
+
+        .shop-item.owned {
+            border-color: #2ecc71;
+        }
+
+        .shop-item.equipped {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .item-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .item-desc {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .item-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 12px;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 8px 16px;
+            background: #00d4ff;
+            color: #0f0f1a;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .buy-btn:hover {
+            background: #00b8e6;
+        }
+
+        .buy-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .buy-btn.equip {
+            background: #2ecc71;
+            color: #fff;
+        }
+
+        .buy-btn.equipped {
+            background: #ffd700;
+            color: #0f0f1a;
+        }
+
+        .buy-btn.consumable {
+            background: #9b59b6;
+            color: #fff;
+        }
+
+        .buy-btn.consumable:hover {
+            background: #8e44ad;
+        }
+
+        .message {
+            text-align: center;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+
+        .message.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .inventory-count {
+            font-size: 12px;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            border: 3px solid #444;
+        }
+
+        .shop-item.equipped .color-preview {
+            border-color: #ffd700;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="back-link">&#8592; Back to Games</a>
+
+    <div class="game-header">
+        <h1>🛒 Game Shop</h1>
+        <p>Spend your coins on skins, buffs, and hints!</p>
+    </div>
+
+    <div class="coins-display">🪙 <span id="coinsDisplay">0</span> coins</div>
+
+    <div class="message" id="message"></div>
+
+    <!-- Parkour Skins -->
+    <div class="shop-section">
+        <h2>🏃 Parkour Runner - Skins</h2>
+        <div class="shop-grid" id="parkourShop"></div>
+    </div>
+
+    <!-- 2048 Buffs -->
+    <div class="shop-section">
+        <h2>🔢 2048 - Buffs</h2>
+        <div class="shop-grid" id="buffsShop"></div>
+    </div>
+
+    <!-- Wordle Hints -->
+    <div class="shop-section">
+        <h2>📝 Word Guess - Hints</h2>
+        <div class="shop-grid" id="hintsShop"></div>
+    </div>
+
+    <script>
+        // ===== Shared Currency System =====
+        const COINS_KEY = 'gamezone_coins';
+        const OWNED_KEY = 'gamezone_owned';
+        const EQUIPPED_KEY = 'gamezone_equipped';
+        const INVENTORY_KEY = 'gamezone_inventory';
+
+        function getCoins() {
+            return parseInt(localStorage.getItem(COINS_KEY) || '0');
+        }
+
+        function setCoins(amount) {
+            localStorage.setItem(COINS_KEY, amount.toString());
+            updateCoinsDisplay();
+        }
+
+        function addCoins(amount) {
+            setCoins(getCoins() + amount);
+        }
+
+        function spendCoins(amount) {
+            const current = getCoins();
+            if (current >= amount) {
+                setCoins(current - amount);
+                return true;
+            }
+            return false;
+        }
+
+        function getOwned() {
+            return JSON.parse(localStorage.getItem(OWNED_KEY) || '[]');
+        }
+
+        function addOwned(itemId) {
+            const owned = getOwned();
+            if (!owned.includes(itemId)) {
+                owned.push(itemId);
+                localStorage.setItem(OWNED_KEY, JSON.stringify(owned));
+            }
+        }
+
+        function getEquipped() {
+            return localStorage.getItem(EQUIPPED_KEY) || 'default';
+        }
+
+        function setEquipped(itemId) {
+            localStorage.setItem(EQUIPPED_KEY, itemId);
+        }
+
+        function getInventory() {
+            return JSON.parse(localStorage.getItem(INVENTORY_KEY) || '{}');
+        }
+
+        function addToInventory(itemId, qty) {
+            const inv = getInventory();
+            inv[itemId] = (inv[itemId] || 0) + qty;
+            localStorage.setItem(INVENTORY_KEY, JSON.stringify(inv));
+        }
+
+        function useItem(itemId) {
+            const inv = getInventory();
+            if (inv[itemId] && inv[itemId] > 0) {
+                inv[itemId]--;
+                localStorage.setItem(INVENTORY_KEY, JSON.stringify(inv));
+                return true;
+            }
+            return false;
+        }
+
+        // ===== Shop Items =====
+        const PARKOUR_SKINS = [
+            { id: 'skin_red', name: 'Red Runner', price: 50, color: '#e74c3c', desc: 'A bold red look for daring runners' },
+            { id: 'skin_green', name: 'Green Dash', price: 50, color: '#2ecc71', desc: 'Swift and stealthy in green' },
+            { id: 'skin_gold', name: 'Gold Rush', price: 100, color: '#ffd700', desc: 'Shine bright as you outrun danger' },
+            { id: 'skin_purple', name: 'Purple Blaze', price: 100, color: '#9b59b6', desc: 'Mysterious and fast' },
+            { id: 'skin_rainbow', name: 'Rainbow Dash', price: 200, color: 'linear-gradient(135deg, #e74c3c, #f39c12, #2ecc71, #3498db, #9b59b6)', desc: 'The ultimate style statement' },
+            { id: 'skin_neon', name: 'Neon Glow', price: 150, color: '#00ff88', desc: 'Glow in the dark runner' }
+        ];
+
+        const BUFFS_2048 = [
+            { id: 'buff_undo', name: 'Undo Move', price: 20, icon: '↩️', desc: 'Undo your last move when you make a mistake' },
+            { id: 'buff_bomb', name: 'Tile Bomb', price: 30, icon: '💣', desc: 'Remove a random tile to free up space' },
+            { id: 'buff_double', name: 'Double Up', price: 40, icon: '⬆️', desc: 'Double the value of a random tile' }
+        ];
+
+        const HINTS_WORDLE = [
+            { id: 'hint_reveal', name: 'Reveal Letter', price: 30, icon: '🔍', desc: 'Reveals the correct letter in a random position' },
+            { id: 'hint_eliminate', name: 'Eliminate Letter', price: 20, icon: '❌', desc: 'Crosses out a wrong letter from the keyboard' },
+            { id: 'hint_position', name: 'Position Hint', price: 40, icon: '📍', desc: 'Shows whether a letter is in the first or second half of the alphabet' }
+        ];
+
+        // ===== UI =====
+        const coinsEl = document.getElementById('coinsDisplay');
+        const messageEl = document.getElementById('message');
+
+        function updateCoinsDisplay() {
+            coinsEl.textContent = getCoins();
+        }
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            setTimeout(() => { messageEl.className = 'message'; }, 3000);
+        }
+
+        function renderParkourShop() {
+            const container = document.getElementById('parkourShop');
+            container.innerHTML = '';
+            const owned = getOwned();
+            const equipped = getEquipped();
+
+            PARKOUR_SKINS.forEach(skin => {
+                const isOwned = owned.includes(skin.id);
+                const isEquipped = equipped === skin.id;
+                const div = document.createElement('div');
+                div.className = 'shop-item' + (isOwned ? ' owned' : '') + (isEquipped ? ' equipped' : '');
+
+                const bgStyle = skin.color.includes('gradient') ? skin.color : skin.color;
+                const previewStyle = skin.color.includes('gradient')
+                    ? `background: ${skin.color};`
+                    : `background: ${skin.color};`;
+
+                div.innerHTML = `
+                    <div class="color-preview" style="${previewStyle}"></div>
+                    <div class="item-name">${skin.name}</div>
+                    <div class="item-desc">${skin.desc}</div>
+                    ${isEquipped ? '<div class="item-price" style="color:#ffd700;">✅ Equipped</div>' :
+                        isOwned ? `<div class="item-price" style="color:#2ecc71;">Owned</div>` :
+                        `<div class="item-price">🪙 ${skin.price}</div>`}
+                    <button class="buy-btn ${isEquipped ? 'equipped' : isOwned ? 'equip' : ''}"
+                        data-skin="${skin.id}" ${!isOwned && getCoins() < skin.price ? 'disabled' : ''}>
+                        ${isEquipped ? 'Equipped' : isOwned ? 'Equip' : getCoins() >= skin.price ? 'Buy' : 'Not enough coins'}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            // Button handlers
+            container.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const skinId = btn.dataset.skin;
+                    const skin = PARKOUR_SKINS.find(s => s.id === skinId);
+                    const owned = getOwned();
+
+                    if (owned.includes(skinId)) {
+                        setEquipped(skinId);
+                        showMessage(`Equipped ${skin.name}!`, 'success');
+                    } else if (spendCoins(skin.price)) {
+                        addOwned(skinId);
+                        setEquipped(skinId);
+                        showMessage(`Bought ${skin.name}!`, 'success');
+                    } else {
+                        showMessage('Not enough coins!', 'error');
+                    }
+                    renderAll();
+                });
+            });
+        }
+
+        function renderBuffsShop() {
+            const container = document.getElementById('buffsShop');
+            container.innerHTML = '';
+            const inv = getInventory();
+
+            BUFFS_2048.forEach(buff => {
+                const count = inv[buff.id] || 0;
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <span class="item-icon">${buff.icon}</span>
+                    <div class="item-name">${buff.name}</div>
+                    <div class="item-desc">${buff.desc}</div>
+                    ${count > 0 ? `<div class="inventory-count">In inventory: ${count}</div>` : ''}
+                    <div class="item-price">🪙 ${buff.price}</div>
+                    <button class="buy-btn consumable" data-buff="${buff.id}" ${getCoins() < buff.price ? 'disabled' : ''}>
+                        ${getCoins() >= buff.price ? 'Buy' : 'Not enough coins'}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            container.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const buffId = btn.dataset.buff;
+                    const buff = BUFFS_2048.find(b => b.id === buffId);
+                    if (spendCoins(buff.price)) {
+                        addToInventory(buffId, 1);
+                        showMessage(`Bought ${buff.name}! Use it in the 2048 game.`, 'success');
+                    } else {
+                        showMessage('Not enough coins!', 'error');
+                    }
+                    renderAll();
+                });
+            });
+        }
+
+        function renderHintsShop() {
+            const container = document.getElementById('hintsShop');
+            container.innerHTML = '';
+            const inv = getInventory();
+
+            HINTS_WORDLE.forEach(hint => {
+                const count = inv[hint.id] || 0;
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                div.innerHTML = `
+                    <span class="item-icon">${hint.icon}</span>
+                    <div class="item-name">${hint.name}</div>
+                    <div class="item-desc">${hint.desc}</div>
+                    ${count > 0 ? `<div class="inventory-count">In inventory: ${count}</div>` : ''}
+                    <div class="item-price">🪙 ${hint.price}</div>
+                    <button class="buy-btn consumable" data-hint="${hint.id}" ${getCoins() < hint.price ? 'disabled' : ''}>
+                        ${getCoins() >= hint.price ? 'Buy' : 'Not enough coins'}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+
+            container.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const hintId = btn.dataset.hint;
+                    const hint = HINTS_WORDLE.find(h => h.id === hintId);
+                    if (spendCoins(hint.price)) {
+                        addToInventory(hintId, 1);
+                        showMessage(`Bought ${hint.name}! Use it in the Word Guess game.`, 'success');
+                    } else {
+                        showMessage('Not enough coins!', 'error');
+                    }
+                    renderAll();
+                });
+            });
+        }
+
+        function renderAll() {
+            updateCoinsDisplay();
+            renderParkourShop();
+            renderBuffsShop();
+            renderHintsShop();
+        }
+
+        renderAll();
+    </script>
+</body>
+
+</html>
