@@ -174,7 +174,7 @@
 
     <div class="game-header">
         <h1>🛒 Game Shop</h1>
-        <p>Spend your coins on skins, buffs, and hints!</p>
+        <p>Spend your coins on skins and buffs!</p>
     </div>
 
     <div class="coins-display">🪙 <span id="coinsDisplay">0</span> coins</div>
@@ -193,11 +193,6 @@
         <div class="shop-grid" id="buffsShop"></div>
     </div>
 
-    <!-- Wordle Hints -->
-    <div class="shop-section">
-        <h2>📝 Word Guess - Hints</h2>
-        <div class="shop-grid" id="hintsShop"></div>
-    </div>
 
     <script>
         // ===== Shared Currency System =====
@@ -284,11 +279,6 @@
             { id: 'buff_double', name: 'Double Up', price: 40, icon: '⬆️', desc: 'Double the value of a random tile' }
         ];
 
-        const HINTS_WORDLE = [
-            { id: 'hint_reveal', name: 'Reveal Letter', price: 30, icon: '🔍', desc: 'Reveals the correct letter in a random position' },
-            { id: 'hint_eliminate', name: 'Eliminate Letter', price: 20, icon: '❌', desc: 'Crosses out a wrong letter from the keyboard' },
-            { id: 'hint_position', name: 'Position Hint', price: 40, icon: '📍', desc: 'Shows whether a letter is in the first or second half of the alphabet' }
-        ];
 
         // ===== UI =====
         const coinsEl = document.getElementById('coinsDisplay');
@@ -395,48 +385,11 @@
             });
         }
 
-        function renderHintsShop() {
-            const container = document.getElementById('hintsShop');
-            container.innerHTML = '';
-            const inv = getInventory();
-
-            HINTS_WORDLE.forEach(hint => {
-                const count = inv[hint.id] || 0;
-                const div = document.createElement('div');
-                div.className = 'shop-item';
-                div.innerHTML = `
-                    <span class="item-icon">${hint.icon}</span>
-                    <div class="item-name">${hint.name}</div>
-                    <div class="item-desc">${hint.desc}</div>
-                    ${count > 0 ? `<div class="inventory-count">In inventory: ${count}</div>` : ''}
-                    <div class="item-price">🪙 ${hint.price}</div>
-                    <button class="buy-btn consumable" data-hint="${hint.id}" ${getCoins() < hint.price ? 'disabled' : ''}>
-                        ${getCoins() >= hint.price ? 'Buy' : 'Not enough coins'}
-                    </button>
-                `;
-                container.appendChild(div);
-            });
-
-            container.querySelectorAll('.buy-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const hintId = btn.dataset.hint;
-                    const hint = HINTS_WORDLE.find(h => h.id === hintId);
-                    if (spendCoins(hint.price)) {
-                        addToInventory(hintId, 1);
-                        showMessage(`Bought ${hint.name}! Use it in the Word Guess game.`, 'success');
-                    } else {
-                        showMessage('Not enough coins!', 'error');
-                    }
-                    renderAll();
-                });
-            });
-        }
 
         function renderAll() {
             updateCoinsDisplay();
             renderParkourShop();
             renderBuffsShop();
-            renderHintsShop();
         }
 
         renderAll();

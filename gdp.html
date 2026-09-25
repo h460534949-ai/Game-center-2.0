@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare the GDP - Game Zone</title>
+    <link rel="stylesheet" href="stylesheet.css">
+    <style>
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .score-box {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 8px 18px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .score-box .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-box .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .score-box .value.coins {
+            color: #ffd700;
+        }
+
+        .compare-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .country-card {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            flex: 1;
+            max-width: 260px;
+            transition: border-color 0.3s;
+        }
+
+        .country-card.winner {
+            border-color: #2ecc71;
+        }
+
+        .country-card.loser {
+            border-color: #e74c3c;
+        }
+
+        .country-card img {
+            width: 160px;
+            height: 107px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #2a2a4a;
+            background: #0f0f1a;
+            margin-bottom: 10px;
+        }
+
+        .country-card .country-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .country-card .gdp-value {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .vs-badge {
+            font-size: 28px;
+            font-weight: 900;
+            color: #00d4ff;
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        .answer-btns {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .answer-btn {
+            padding: 14px 32px;
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 180px;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        .answer-btn:disabled {
+            cursor: default;
+        }
+
+        .answer-btn.correct {
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+
+        .answer-btn.wrong {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            min-height: 28px;
+            margin-bottom: 8px;
+        }
+
+        .feedback.correct {
+            color: #2ecc71;
+        }
+
+        .feedback.wrong {
+            color: #e74c3c;
+        }
+
+        .streak-display {
+            text-align: center;
+            color: #ffd700;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 20px;
+            margin-bottom: 16px;
+        }
+
+        .controls-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .round-label {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .compare-area {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .country-card {
+                max-width: 100%;
+            }
+
+            .country-card img {
+                width: 200px;
+                height: 133px;
+            }
+
+            .vs-badge {
+                font-size: 22px;
+            }
+
+            .answer-btns {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .answer-btn {
+                min-width: 240px;
+            }
+
+            .score-bar {
+                gap: 8px;
+            }
+
+            .score-box {
+                padding: 6px 12px;
+                min-width: 60px;
+            }
+
+            .score-box .value {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="back-link">&#8592; Back to Games</a>
+
+    <div class="game-header">
+        <h1>&#128200; Compare the GDP</h1>
+        <p>Which country has the higher GDP? Test your economics knowledge!</p>
+    </div>
+
+    <div class="game-wrapper">
+        <div class="score-bar">
+            <div class="score-box">
+                <div class="label">Round</div>
+                <div class="value" id="roundDisplay">0/10</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Score</div>
+                <div class="value" id="scoreDisplay">0</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Streak</div>
+                <div class="value" id="streakDisplay">0</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Coins</div>
+                <div class="value coins" id="coinsDisplay">0</div>
+            </div>
+        </div>
+
+        <div class="round-label" id="roundLabel">Press Start to play!</div>
+
+        <div class="compare-area" id="compareArea" style="display:none;">
+            <div class="country-card" id="cardA">
+                <img id="flagA" src="" alt="Country A flag">
+                <div class="country-name" id="nameA"></div>
+                <div class="gdp-value" id="gdpA"></div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="country-card" id="cardB">
+                <img id="flagB" src="" alt="Country B flag">
+                <div class="country-name" id="nameB"></div>
+                <div class="gdp-value" id="gdpB"></div>
+            </div>
+        </div>
+
+        <div class="answer-btns" id="answerBtns">
+            <button class="answer-btn" id="btnA" disabled>Country A</button>
+            <button class="answer-btn" id="btnB" disabled>Country B</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+        <div class="streak-display" id="streakInfo"></div>
+
+        <div class="controls-bar">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <label for="roundSelect" style="color: #888; font-size: 14px;">Rounds:</label>
+                <select id="roundSelect"
+                    style="background: #1a1a2e; color: #00d4ff; border: 2px solid #2a2a4a; border-radius: 6px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <button class="game-btn" id="startBtn">Start Game</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="gameOverOverlay">
+        <div class="overlay-content">
+            <h2 id="endTitle">Game Over!</h2>
+            <p id="endMsg">You scored 0 out of 10</p>
+            <p id="endCoins" style="color: #ffd700; font-size: 18px; font-weight: 700;"></p>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
+                <button class="game-btn" id="playAgainBtn">Play Again</button>
+                <a href="shop.html" class="game-btn"
+                    style="text-decoration:none; background: #ffd700; color: #0f0f1a;">Shop</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const COINS_KEY = 'gamezone_coins';
+        const COINS_PER_CORRECT = 30;
+        let TOTAL_ROUNDS = 10;
+
+        const COUNTRIES = [
+            { name: 'United States', code: 'us', gdp: 27360000 },
+            { name: 'China', code: 'cn', gdp: 17790000 },
+            { name: 'Germany', code: 'de', gdp: 4460000 },
+            { name: 'Japan', code: 'jp', gdp: 4210000 },
+            { name: 'India', code: 'in', gdp: 3730000 },
+            { name: 'United Kingdom', code: 'gb', gdp: 3340000 },
+            { name: 'France', code: 'fr', gdp: 3050000 },
+            { name: 'Italy', code: 'it', gdp: 2250000 },
+            { name: 'Brazil', code: 'br', gdp: 2170000 },
+            { name: 'Canada', code: 'ca', gdp: 2140000 },
+            { name: 'Russia', code: 'ru', gdp: 2060000 },
+            { name: 'Mexico', code: 'mx', gdp: 1810000 },
+            { name: 'Australia', code: 'au', gdp: 1720000 },
+            { name: 'South Korea', code: 'kr', gdp: 1710000 },
+            { name: 'Spain', code: 'es', gdp: 1580000 },
+            { name: 'Indonesia', code: 'id', gdp: 1370000 },
+            { name: 'Netherlands', code: 'nl', gdp: 1120000 },
+            { name: 'Saudi Arabia', code: 'sa', gdp: 1070000 },
+            { name: 'Turkey', code: 'tr', gdp: 1110000 },
+            { name: 'Switzerland', code: 'ch', gdp: 880000 },
+            { name: 'Poland', code: 'pl', gdp: 810000 },
+            { name: 'Argentina', code: 'ar', gdp: 640000 },
+            { name: 'Sweden', code: 'se', gdp: 590000 },
+            { name: 'Belgium', code: 'be', gdp: 630000 },
+            { name: 'Ireland', code: 'ie', gdp: 550000 },
+            { name: 'Thailand', code: 'th', gdp: 550000 },
+            { name: 'Israel', code: 'il', gdp: 520000 },
+            { name: 'Nigeria', code: 'ng', gdp: 480000 },
+            { name: 'Austria', code: 'at', gdp: 520000 },
+            { name: 'Norway', code: 'no', gdp: 490000 },
+            { name: 'United Arab Emirates', code: 'ae', gdp: 510000 },
+            { name: 'Egypt', code: 'eg', gdp: 390000 },
+            { name: 'South Africa', code: 'za', gdp: 380000 },
+            { name: 'Bangladesh', code: 'bd', gdp: 460000 },
+            { name: 'Vietnam', code: 'vn', gdp: 430000 },
+            { name: 'Philippines', code: 'ph', gdp: 440000 },
+            { name: 'Chile', code: 'cl', gdp: 340000 },
+            { name: 'Finland', code: 'fi', gdp: 300000 },
+            { name: 'Malaysia', code: 'my', gdp: 410000 },
+            { name: 'Czech Republic', code: 'cz', gdp: 330000 },
+            { name: 'New Zealand', code: 'nz', gdp: 250000 },
+            { name: 'Romania', code: 'ro', gdp: 350000 },
+            { name: 'Peru', code: 'pe', gdp: 270000 },
+            { name: 'Iraq', code: 'iq', gdp: 270000 },
+            { name: 'Algeria', code: 'dz', gdp: 240000 },
+            { name: 'Kazakhstan', code: 'kz', gdp: 260000 },
+            { name: 'Qatar', code: 'qa', gdp: 240000 },
+            { name: 'Hungary', code: 'hu', gdp: 200000 },
+            { name: 'Portugal', code: 'pt', gdp: 290000 },
+            { name: 'Greece', code: 'gr', gdp: 240000 },
+            { name: 'Ecuador', code: 'ec', gdp: 120000 },
+            { name: 'Guatemala', code: 'gt', gdp: 100000 },
+            { name: 'Cuba', code: 'cu', gdp: 110000 },
+            { name: 'Morocco', code: 'ma', gdp: 140000 },
+            { name: 'Ukraine', code: 'ua', gdp: 180000 },
+            { name: 'Angola', code: 'ao', gdp: 110000 },
+            { name: 'Ethiopia', code: 'et', gdp: 160000 },
+            { name: 'Kenya', code: 'ke', gdp: 110000 },
+            { name: 'Dominican Republic', code: 'do', gdp: 120000 },
+            { name: 'Pakistan', code: 'pk', gdp: 340000 },
+            { name: 'Colombia', code: 'co', gdp: 360000 },
+            { name: 'Venezuela', code: 've', gdp: 110000 },
+            { name: 'Iran', code: 'ir', gdp: 390000 },
+            { name: 'Denmark', code: 'dk', gdp: 400000 },
+            { name: 'Singapore', code: 'sg', gdp: 500000 },
+            { name: 'Hong Kong', code: 'hk', gdp: 380000 },
+            { name: 'Croatia', code: 'hr', gdp: 80000 },
+            { name: 'Costa Rica', code: 'cr', gdp: 70000 },
+            { name: 'Panama', code: 'pa', gdp: 78000 },
+            { name: 'Uruguay', code: 'uy', gdp: 70000 },
+            { name: 'Paraguay', code: 'py', gdp: 43000 },
+            { name: 'Bolivia', code: 'bo', gdp: 45000 },
+            { name: 'Honduras', code: 'hn', gdp: 34000 },
+            { name: 'El Salvador', code: 'sv', gdp: 34000 },
+            { name: 'Nicaragua', code: 'ni', gdp: 17000 },
+            { name: 'Jamaica', code: 'jm', gdp: 18000 },
+            { name: 'Trinidad and Tobago', code: 'tt', gdp: 29000 },
+            { name: 'Bahamas', code: 'bs', gdp: 14000 },
+            { name: 'Barbados', code: 'bb', gdp: 7000 },
+            { name: 'Belize', code: 'bz', gdp: 3200 },
+            { name: 'Guyana', code: 'gy', gdp: 16000 },
+            { name: 'Suriname', code: 'sr', gdp: 4100 },
+            { name: 'Haiti', code: 'ht', gdp: 21000 },
+            { name: 'Antigua and Barbuda', code: 'ag', gdp: 1800 },
+            { name: 'Saint Lucia', code: 'lc', gdp: 2500 },
+            { name: 'Grenada', code: 'gd', gdp: 1300 },
+            { name: 'Saint Vincent and the Grenadines', code: 'vc', gdp: 1200 },
+            { name: 'Dominica', code: 'dm', gdp: 700 },
+            { name: 'Saint Kitts and Nevis', code: 'kn', gdp: 1100 },
+            { name: 'Afghanistan', code: 'af', gdp: 17000 },
+            { name: 'Albania', code: 'al', gdp: 23000 },
+            { name: 'Andorra', code: 'ad', gdp: 4000 },
+            { name: 'Armenia', code: 'am', gdp: 22000 },
+            { name: 'Azerbaijan', code: 'az', gdp: 70000 },
+            { name: 'Bahrain', code: 'bh', gdp: 44000 },
+            { name: 'Belarus', code: 'by', gdp: 75000 },
+            { name: 'Benin', code: 'bj', gdp: 20000 },
+            { name: 'Bhutan', code: 'bt', gdp: 3000 },
+            { name: 'Bosnia and Herzegovina', code: 'ba', gdp: 27000 },
+            { name: 'Botswana', code: 'bw', gdp: 21000 },
+            { name: 'Brunei', code: 'bn', gdp: 18000 },
+            { name: 'Bulgaria', code: 'bg', gdp: 100000 },
+            { name: 'Burkina Faso', code: 'bf', gdp: 21000 },
+            { name: 'Burundi', code: 'bi', gdp: 3000 },
+            { name: 'Cabo Verde', code: 'cv', gdp: 3000 },
+            { name: 'Cambodia', code: 'kh', gdp: 30000 },
+            { name: 'Cameroon', code: 'cm', gdp: 48000 },
+            { name: 'Central African Republic', code: 'cf', gdp: 3000 },
+            { name: 'Chad', code: 'td', gdp: 13000 },
+            { name: 'Comoros', code: 'km', gdp: 1400 },
+            { name: 'Congo (DRC)', code: 'cd', gdp: 70000 },
+            { name: 'Congo (Republic)', code: 'cg', gdp: 14000 },
+            { name: 'Cyprus', code: 'cy', gdp: 31000 },
+            { name: 'Djibouti', code: 'dj', gdp: 4000 },
+            { name: 'East Timor', code: 'tl', gdp: 2000 },
+            { name: 'Equatorial Guinea', code: 'gq', gdp: 12000 },
+            { name: 'Eritrea', code: 'er', gdp: 3000 },
+            { name: 'Estonia', code: 'ee', gdp: 41000 },
+            { name: 'Eswatini', code: 'sz', gdp: 5000 },
+            { name: 'Fiji', code: 'fj', gdp: 5000 },
+            { name: 'Gabon', code: 'ga', gdp: 21000 },
+            { name: 'Gambia', code: 'gm', gdp: 2400 },
+            { name: 'Georgia', code: 'ge', gdp: 31000 },
+            { name: 'Ghana', code: 'gh', gdp: 75000 },
+            { name: 'Guinea', code: 'gn', gdp: 22000 },
+            { name: 'Guinea-Bissau', code: 'gw', gdp: 2000 },
+            { name: 'Iceland', code: 'is', gdp: 30000 },
+            { name: 'Ivory Coast', code: 'ci', gdp: 78000 },
+            { name: 'Jordan', code: 'jo', gdp: 50000 },
+            { name: 'Kiribati', code: 'ki', gdp: 300 },
+            { name: 'Kuwait', code: 'kw', gdp: 160000 },
+            { name: 'Kyrgyzstan', code: 'kg', gdp: 15000 },
+            { name: 'Laos', code: 'la', gdp: 16000 },
+            { name: 'Latvia', code: 'lv', gdp: 44000 },
+            { name: 'Lebanon', code: 'lb', gdp: 21000 },
+            { name: 'Lesotho', code: 'ls', gdp: 2600 },
+            { name: 'Liberia', code: 'lr', gdp: 4400 },
+            { name: 'Libya', code: 'ly', gdp: 48000 },
+            { name: 'Liechtenstein', code: 'li', gdp: 7000 },
+            { name: 'Lithuania', code: 'lt', gdp: 80000 },
+            { name: 'Luxembourg', code: 'lu', gdp: 85000 },
+            { name: 'Madagascar', code: 'mg', gdp: 16000 },
+            { name: 'Malawi', code: 'mw', gdp: 12000 },
+            { name: 'Maldives', code: 'mv', gdp: 7000 },
+            { name: 'Mali', code: 'ml', gdp: 21000 },
+            { name: 'Malta', code: 'mt', gdp: 20000 },
+            { name: 'Marshall Islands', code: 'mh', gdp: 300 },
+            { name: 'Mauritania', code: 'mr', gdp: 10000 },
+            { name: 'Mauritius', code: 'mu', gdp: 15000 },
+            { name: 'Micronesia', code: 'fm', gdp: 500 },
+            { name: 'Moldova', code: 'md', gdp: 17000 },
+            { name: 'Monaco', code: 'mc', gdp: 9000 },
+            { name: 'Mongolia', code: 'mn', gdp: 18000 },
+            { name: 'Montenegro', code: 'me', gdp: 7000 },
+            { name: 'Mozambique', code: 'mz', gdp: 21000 },
+            { name: 'Myanmar', code: 'mm', gdp: 65000 },
+            { name: 'Namibia', code: 'na', gdp: 13000 },
+            { name: 'Nauru', code: 'nr', gdp: 200 },
+            { name: 'Nepal', code: 'np', gdp: 41000 },
+            { name: 'Niger', code: 'ne', gdp: 18000 },
+            { name: 'North Korea', code: 'kp', gdp: 32000 },
+            { name: 'North Macedonia', code: 'mk', gdp: 15000 },
+            { name: 'Oman', code: 'om', gdp: 110000 },
+            { name: 'Palau', code: 'pw', gdp: 300 },
+            { name: 'Palestine', code: 'ps', gdp: 20000 },
+            { name: 'Papua New Guinea', code: 'pg', gdp: 32000 },
+            { name: 'Rwanda', code: 'rw', gdp: 13000 },
+            { name: 'Samoa', code: 'ws', gdp: 1000 },
+            { name: 'San Marino', code: 'sm', gdp: 2200 },
+            { name: 'Sao Tome and Principe', code: 'st', gdp: 600 },
+            { name: 'Senegal', code: 'sn', gdp: 33000 },
+            { name: 'Serbia', code: 'rs', gdp: 70000 },
+            { name: 'Seychelles', code: 'sc', gdp: 2000 },
+            { name: 'Sierra Leone', code: 'sl', gdp: 4300 },
+            { name: 'Slovakia', code: 'sk', gdp: 130000 },
+            { name: 'Slovenia', code: 'si', gdp: 68000 },
+            { name: 'Solomon Islands', code: 'sb', gdp: 1700 },
+            { name: 'Somalia', code: 'so', gdp: 12000 },
+            { name: 'South Sudan', code: 'ss', gdp: 7000 },
+            { name: 'Sri Lanka', code: 'lk', gdp: 75000 },
+            { name: 'Sudan', code: 'sd', gdp: 34000 },
+            { name: 'Syria', code: 'sy', gdp: 12000 },
+            { name: 'Tajikistan', code: 'tj', gdp: 12000 },
+            { name: 'Tanzania', code: 'tz', gdp: 85000 },
+            { name: 'Togo', code: 'tg', gdp: 9000 },
+            { name: 'Tonga', code: 'to', gdp: 600 },
+            { name: 'Tunisia', code: 'tn', gdp: 51000 },
+            { name: 'Turkmenistan', code: 'tm', gdp: 50000 },
+            { name: 'Tuvalu', code: 'tv', gdp: 60 },
+            { name: 'Uganda', code: 'ug', gdp: 52000 },
+            { name: 'Uzbekistan', code: 'uz', gdp: 90000 },
+            { name: 'Vanuatu', code: 'vu', gdp: 1100 },
+            { name: 'Vatican City', code: 'va', gdp: 400 },
+            { name: 'Yemen', code: 'ye', gdp: 21000 },
+            { name: 'Zambia', code: 'zm', gdp: 29000 },
+            { name: 'Zimbabwe', code: 'zw', gdp: 35000 }
+        ];
+
+        let currentRound = 0;
+        let score = 0;
+        let streak = 0;
+        let bestStreak = 0;
+        let coinsEarned = 0;
+        let answered = false;
+        let countryA = null;
+        let countryB = null;
+
+        const roundDisplay = document.getElementById('roundDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const streakDisplay = document.getElementById('streakDisplay');
+        const coinsDisplay = document.getElementById('coinsDisplay');
+        const roundLabel = document.getElementById('roundLabel');
+        const compareArea = document.getElementById('compareArea');
+        const flagA = document.getElementById('flagA');
+        const flagB = document.getElementById('flagB');
+        const nameA = document.getElementById('nameA');
+        const nameB = document.getElementById('nameB');
+        const gdpA = document.getElementById('gdpA');
+        const gdpB = document.getElementById('gdpB');
+        const cardA = document.getElementById('cardA');
+        const cardB = document.getElementById('cardB');
+        const btnA = document.getElementById('btnA');
+        const btnB = document.getElementById('btnB');
+        const feedback = document.getElementById('feedback');
+        const streakInfo = document.getElementById('streakInfo');
+        const startBtn = document.getElementById('startBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const overlay = document.getElementById('gameOverOverlay');
+        const roundSelect = document.getElementById('roundSelect');
+
+        function getCoins() { return parseInt(localStorage.getItem(COINS_KEY) || '0'); }
+        function addCoins(amount) {
+            localStorage.setItem(COINS_KEY, (getCoins() + amount).toString());
+            coinsDisplay.textContent = getCoins();
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function formatGDP(value) {
+            if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(2) + ' trillion';
+            }
+            return '$' + (value / 1000).toFixed(0) + ' billion';
+        }
+
+        coinsDisplay.textContent = getCoins();
+
+        function startGame() {
+            TOTAL_ROUNDS = parseInt(roundSelect.value);
+            currentRound = 0;
+            score = 0;
+            streak = 0;
+            bestStreak = 0;
+            coinsEarned = 0;
+            scoreDisplay.textContent = '0';
+            streakDisplay.textContent = '0';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            streakInfo.textContent = '';
+            overlay.classList.remove('active');
+            startBtn.textContent = 'New Game';
+            nextRound();
+        }
+
+        function nextRound() {
+            if (currentRound >= TOTAL_ROUNDS) {
+                endGame();
+                return;
+            }
+
+            currentRound++;
+            answered = false;
+            roundDisplay.textContent = currentRound + '/' + TOTAL_ROUNDS;
+            roundLabel.textContent = 'Which country has the higher GDP?';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            gdpA.textContent = '';
+            gdpB.textContent = '';
+            cardA.className = 'country-card';
+            cardB.className = 'country-card';
+            btnA.disabled = false;
+            btnB.disabled = false;
+            btnA.className = 'answer-btn';
+            btnB.className = 'answer-btn';
+
+            const pair = shuffle(COUNTRIES).slice(0, 2);
+            countryA = pair[0];
+            countryB = pair[1];
+
+            flagA.src = 'https://flagcdn.com/w320/' + countryA.code + '.png';
+            flagA.alt = countryA.name + ' flag';
+            flagB.src = 'https://flagcdn.com/w320/' + countryB.code + '.png';
+            flagB.alt = countryB.name + ' flag';
+            nameA.textContent = countryA.name;
+            nameB.textContent = countryB.name;
+
+            flagA.onerror = function () {
+                this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="107"><rect fill="%23333" width="160" height="107"/><text fill="%23999" font-size="12" x="50%" y="50%" text-anchor="middle" dy=".3em">Flag N/A</text></svg>';
+            };
+            flagB.onerror = function () {
+                this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="107"><rect fill="%23333" width="160" height="107"/><text fill="%23999" font-size="12" x="50%" y="50%" text-anchor="middle" dy=".3em">Flag N/A</text></svg>';
+            };
+
+            compareArea.style.display = 'flex';
+            btnA.textContent = countryA.name;
+            btnB.textContent = countryB.name;
+        }
+
+        function handleAnswer(choice) {
+            if (answered) return;
+            answered = true;
+
+            btnA.disabled = true;
+            btnB.disabled = true;
+
+            const higher = countryA.gdp >= countryB.gdp ? 'A' : 'B';
+            const isCorrect = choice === higher;
+
+            gdpA.textContent = formatGDP(countryA.gdp);
+            gdpB.textContent = formatGDP(countryB.gdp);
+
+            if (higher === 'A') {
+                cardA.classList.add('winner');
+                cardB.classList.add('loser');
+            } else {
+                cardB.classList.add('winner');
+                cardA.classList.add('loser');
+            }
+
+            if (isCorrect) {
+                score++;
+                streak++;
+                if (streak > bestStreak) bestStreak = streak;
+                scoreDisplay.textContent = score;
+                streakDisplay.textContent = streak;
+                (choice === 'A' ? btnA : btnB).classList.add('correct');
+                feedback.textContent = 'Correct!';
+                feedback.className = 'feedback correct';
+                if (streak >= 3) {
+                    streakInfo.textContent = streak + ' in a row!';
+                } else {
+                    streakInfo.textContent = '';
+                }
+            } else {
+                streak = 0;
+                streakDisplay.textContent = '0';
+                (choice === 'A' ? btnA : btnB).classList.add('wrong');
+                const winnerName = higher === 'A' ? countryA.name : countryB.name;
+                feedback.textContent = 'Wrong! ' + winnerName + ' has the higher GDP.';
+                feedback.className = 'feedback wrong';
+                streakInfo.textContent = '';
+            }
+
+            setTimeout(nextRound, 2500);
+        }
+
+        function endGame() {
+            coinsEarned = score * COINS_PER_CORRECT;
+            addCoins(coinsEarned);
+
+            compareArea.style.display = 'none';
+            roundLabel.textContent = 'Game Over!';
+            btnA.disabled = true;
+            btnB.disabled = true;
+            feedback.textContent = '';
+            streakInfo.textContent = '';
+
+            document.getElementById('endTitle').textContent =
+                score === TOTAL_ROUNDS ? 'Perfect Score!' :
+                    score >= Math.floor(TOTAL_ROUNDS * 0.7) ? 'Great Job!' :
+                        score >= Math.floor(TOTAL_ROUNDS * 0.4) ? 'Not Bad!' : 'Keep Learning!';
+            document.getElementById('endMsg').textContent =
+                'You scored ' + score + ' out of ' + TOTAL_ROUNDS +
+                (bestStreak >= 3 ? ' (Best streak: ' + bestStreak + ')' : '');
+            document.getElementById('endCoins').textContent =
+                coinsEarned > 0 ? '+' + coinsEarned + ' \uD83E\uDE99' : 'No coins earned';
+
+            overlay.classList.add('active');
+        }
+
+        btnA.addEventListener('click', () => handleAnswer('A'));
+        btnB.addEventListener('click', () => handleAnswer('B'));
+        startBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', startGame);
+    </script>
+</body>
+
+</html>

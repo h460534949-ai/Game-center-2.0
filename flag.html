@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Guess - Game Zone</title>
+    <link rel="stylesheet" href="stylesheet.css">
+    <style>
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .score-box {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 8px 18px;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .score-box .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-box .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .score-box .value.coins {
+            color: #ffd700;
+        }
+
+        .flag-card {
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            min-width: 320px;
+        }
+
+        .flag-card img {
+            width: 240px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #2a2a4a;
+            background: #0f0f1a;
+        }
+
+        .flag-card .round-label {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .choice-btn {
+            padding: 14px 16px;
+            background: #1a1a2e;
+            border: 2px solid #2a2a4a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.08);
+        }
+
+        .choice-btn:disabled {
+            cursor: default;
+        }
+
+        .choice-btn.correct {
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+
+        .choice-btn.wrong {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            min-height: 28px;
+            margin-top: 16px;
+        }
+
+        .feedback.correct {
+            color: #2ecc71;
+        }
+
+        .feedback.wrong {
+            color: #e74c3c;
+        }
+
+        .streak-display {
+            text-align: center;
+            color: #ffd700;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            min-height: 20px;
+        }
+
+        .controls-bar {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .flag-card {
+                min-width: auto;
+                width: 100%;
+                padding: 16px;
+            }
+
+            .flag-card img {
+                width: 180px;
+                height: 120px;
+            }
+
+            .choices {
+                grid-template-columns: 1fr;
+            }
+
+            .score-bar {
+                gap: 8px;
+            }
+
+            .score-box {
+                padding: 6px 12px;
+                min-width: 60px;
+            }
+
+            .score-box .value {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="index.html" class="back-link">&#8592; Back to Games</a>
+
+    <div class="game-header">
+        <h1>&#127987; Flag Guess</h1>
+        <p>Can you identify the country from its flag?</p>
+    </div>
+
+    <div class="game-wrapper">
+        <div class="score-bar">
+            <div class="score-box">
+                <div class="label">Round</div>
+                <div class="value" id="roundDisplay">0/10</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Score</div>
+                <div class="value" id="scoreDisplay">0</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Streak</div>
+                <div class="value" id="streakDisplay">0</div>
+            </div>
+            <div class="score-box">
+                <div class="label">Coins</div>
+                <div class="value coins" id="coinsDisplay">0</div>
+            </div>
+        </div>
+
+        <div class="flag-card">
+            <div class="round-label" id="roundLabel">Press Start to play!</div>
+            <img id="flagImg" src="" alt="Country Flag" style="display:none;">
+        </div>
+
+        <div class="choices" id="choicesContainer"></div>
+
+        <div class="feedback" id="feedback"></div>
+        <div class="streak-display" id="streakInfo"></div>
+
+        <div class="controls-bar" style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <label for="roundSelect" style="color: #888; font-size: 14px;">Rounds:</label>
+                <select id="roundSelect" style="background: #1a1a2e; color: #00d4ff; border: 2px solid #2a2a4a; border-radius: 6px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <button class="game-btn" id="startBtn">Start Game</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="gameOverOverlay">
+        <div class="overlay-content">
+            <h2 id="endTitle">Game Over!</h2>
+            <p id="endMsg">You scored 0 out of 10</p>
+            <p id="endCoins" style="color: #ffd700; font-size: 18px; font-weight: 700;"></p>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
+                <button class="game-btn" id="playAgainBtn">Play Again</button>
+                <a href="shop.html" class="game-btn"
+                    style="text-decoration:none; background: #ffd700; color: #0f0f1a;">Shop</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const COINS_KEY = 'gamezone_coins';
+        const COINS_PER_CORRECT = 30;
+        let TOTAL_ROUNDS = 10;
+
+        const COUNTRIES = [
+            { name: 'Afghanistan', code: 'af' },
+            { name: 'Albania', code: 'al' },
+            { name: 'Algeria', code: 'dz' },
+            { name: 'Andorra', code: 'ad' },
+            { name: 'Angola', code: 'ao' },
+            { name: 'Antigua and Barbuda', code: 'ag' },
+            { name: 'Argentina', code: 'ar' },
+            { name: 'Armenia', code: 'am' },
+            { name: 'Australia', code: 'au' },
+            { name: 'Austria', code: 'at' },
+            { name: 'Azerbaijan', code: 'az' },
+            { name: 'Bahamas', code: 'bs' },
+            { name: 'Bahrain', code: 'bh' },
+            { name: 'Bangladesh', code: 'bd' },
+            { name: 'Barbados', code: 'bb' },
+            { name: 'Belarus', code: 'by' },
+            { name: 'Belgium', code: 'be' },
+            { name: 'Belize', code: 'bz' },
+            { name: 'Benin', code: 'bj' },
+            { name: 'Bhutan', code: 'bt' },
+            { name: 'Bolivia', code: 'bo' },
+            { name: 'Bosnia and Herzegovina', code: 'ba' },
+            { name: 'Botswana', code: 'bw' },
+            { name: 'Brazil', code: 'br' },
+            { name: 'Brunei', code: 'bn' },
+            { name: 'Bulgaria', code: 'bg' },
+            { name: 'Burkina Faso', code: 'bf' },
+            { name: 'Burundi', code: 'bi' },
+            { name: 'Cabo Verde', code: 'cv' },
+            { name: 'Cambodia', code: 'kh' },
+            { name: 'Cameroon', code: 'cm' },
+            { name: 'Canada', code: 'ca' },
+            { name: 'Central African Republic', code: 'cf' },
+            { name: 'Chad', code: 'td' },
+            { name: 'Chile', code: 'cl' },
+            { name: 'China', code: 'cn' },
+            { name: 'Colombia', code: 'co' },
+            { name: 'Comoros', code: 'km' },
+            { name: 'Congo (DRC)', code: 'cd' },
+            { name: 'Congo (Republic)', code: 'cg' },
+            { name: 'Costa Rica', code: 'cr' },
+            { name: 'Croatia', code: 'hr' },
+            { name: 'Cuba', code: 'cu' },
+            { name: 'Cyprus', code: 'cy' },
+            { name: 'Czech Republic', code: 'cz' },
+            { name: 'Denmark', code: 'dk' },
+            { name: 'Djibouti', code: 'dj' },
+            { name: 'Dominica', code: 'dm' },
+            { name: 'Dominican Republic', code: 'do' },
+            { name: 'East Timor', code: 'tl' },
+            { name: 'Ecuador', code: 'ec' },
+            { name: 'Egypt', code: 'eg' },
+            { name: 'El Salvador', code: 'sv' },
+            { name: 'Equatorial Guinea', code: 'gq' },
+            { name: 'Eritrea', code: 'er' },
+            { name: 'Estonia', code: 'ee' },
+            { name: 'Eswatini', code: 'sz' },
+            { name: 'Ethiopia', code: 'et' },
+            { name: 'Fiji', code: 'fj' },
+            { name: 'Finland', code: 'fi' },
+            { name: 'France', code: 'fr' },
+            { name: 'Gabon', code: 'ga' },
+            { name: 'Gambia', code: 'gm' },
+            { name: 'Georgia', code: 'ge' },
+            { name: 'Germany', code: 'de' },
+            { name: 'Ghana', code: 'gh' },
+            { name: 'Greece', code: 'gr' },
+            { name: 'Grenada', code: 'gd' },
+            { name: 'Guatemala', code: 'gt' },
+            { name: 'Guinea', code: 'gn' },
+            { name: 'Guinea-Bissau', code: 'gw' },
+            { name: 'Guyana', code: 'gy' },
+            { name: 'Haiti', code: 'ht' },
+            { name: 'Honduras', code: 'hn' },
+            { name: 'Hungary', code: 'hu' },
+            { name: 'Iceland', code: 'is' },
+            { name: 'India', code: 'in' },
+            { name: 'Indonesia', code: 'id' },
+            { name: 'Iran', code: 'ir' },
+            { name: 'Iraq', code: 'iq' },
+            { name: 'Ireland', code: 'ie' },
+            { name: 'Israel', code: 'il' },
+            { name: 'Italy', code: 'it' },
+            { name: 'Ivory Coast', code: 'ci' },
+            { name: 'Jamaica', code: 'jm' },
+            { name: 'Japan', code: 'jp' },
+            { name: 'Jordan', code: 'jo' },
+            { name: 'Kazakhstan', code: 'kz' },
+            { name: 'Kenya', code: 'ke' },
+            { name: 'Kiribati', code: 'ki' },
+            { name: 'Kuwait', code: 'kw' },
+            { name: 'Kyrgyzstan', code: 'kg' },
+            { name: 'Laos', code: 'la' },
+            { name: 'Latvia', code: 'lv' },
+            { name: 'Lebanon', code: 'lb' },
+            { name: 'Lesotho', code: 'ls' },
+            { name: 'Liberia', code: 'lr' },
+            { name: 'Libya', code: 'ly' },
+            { name: 'Liechtenstein', code: 'li' },
+            { name: 'Lithuania', code: 'lt' },
+            { name: 'Luxembourg', code: 'lu' },
+            { name: 'Madagascar', code: 'mg' },
+            { name: 'Malawi', code: 'mw' },
+            { name: 'Malaysia', code: 'my' },
+            { name: 'Maldives', code: 'mv' },
+            { name: 'Mali', code: 'ml' },
+            { name: 'Malta', code: 'mt' },
+            { name: 'Marshall Islands', code: 'mh' },
+            { name: 'Mauritania', code: 'mr' },
+            { name: 'Mauritius', code: 'mu' },
+            { name: 'Mexico', code: 'mx' },
+            { name: 'Micronesia', code: 'fm' },
+            { name: 'Moldova', code: 'md' },
+            { name: 'Monaco', code: 'mc' },
+            { name: 'Mongolia', code: 'mn' },
+            { name: 'Montenegro', code: 'me' },
+            { name: 'Morocco', code: 'ma' },
+            { name: 'Mozambique', code: 'mz' },
+            { name: 'Myanmar', code: 'mm' },
+            { name: 'Namibia', code: 'na' },
+            { name: 'Nauru', code: 'nr' },
+            { name: 'Nepal', code: 'np' },
+            { name: 'Netherlands', code: 'nl' },
+            { name: 'New Zealand', code: 'nz' },
+            { name: 'Nicaragua', code: 'ni' },
+            { name: 'Niger', code: 'ne' },
+            { name: 'Nigeria', code: 'ng' },
+            { name: 'North Korea', code: 'kp' },
+            { name: 'North Macedonia', code: 'mk' },
+            { name: 'Norway', code: 'no' },
+            { name: 'Oman', code: 'om' },
+            { name: 'Pakistan', code: 'pk' },
+            { name: 'Palau', code: 'pw' },
+            { name: 'Palestine', code: 'ps' },
+            { name: 'Panama', code: 'pa' },
+            { name: 'Papua New Guinea', code: 'pg' },
+            { name: 'Paraguay', code: 'py' },
+            { name: 'Peru', code: 'pe' },
+            { name: 'Philippines', code: 'ph' },
+            { name: 'Poland', code: 'pl' },
+            { name: 'Portugal', code: 'pt' },
+            { name: 'Qatar', code: 'qa' },
+            { name: 'Romania', code: 'ro' },
+            { name: 'Russia', code: 'ru' },
+            { name: 'Rwanda', code: 'rw' },
+            { name: 'Saint Kitts and Nevis', code: 'kn' },
+            { name: 'Saint Lucia', code: 'lc' },
+            { name: 'Saint Vincent and the Grenadines', code: 'vc' },
+            { name: 'Samoa', code: 'ws' },
+            { name: 'San Marino', code: 'sm' },
+            { name: 'Sao Tome and Principe', code: 'st' },
+            { name: 'Saudi Arabia', code: 'sa' },
+            { name: 'Senegal', code: 'sn' },
+            { name: 'Serbia', code: 'rs' },
+            { name: 'Seychelles', code: 'sc' },
+            { name: 'Sierra Leone', code: 'sl' },
+            { name: 'Singapore', code: 'sg' },
+            { name: 'Slovakia', code: 'sk' },
+            { name: 'Slovenia', code: 'si' },
+            { name: 'Solomon Islands', code: 'sb' },
+            { name: 'Somalia', code: 'so' },
+            { name: 'South Africa', code: 'za' },
+            { name: 'South Korea', code: 'kr' },
+            { name: 'South Sudan', code: 'ss' },
+            { name: 'Spain', code: 'es' },
+            { name: 'Sri Lanka', code: 'lk' },
+            { name: 'Sudan', code: 'sd' },
+            { name: 'Suriname', code: 'sr' },
+            { name: 'Sweden', code: 'se' },
+            { name: 'Switzerland', code: 'ch' },
+            { name: 'Syria', code: 'sy' },
+            { name: 'Tajikistan', code: 'tj' },
+            { name: 'Tanzania', code: 'tz' },
+            { name: 'Thailand', code: 'th' },
+            { name: 'Togo', code: 'tg' },
+            { name: 'Tonga', code: 'to' },
+            { name: 'Trinidad and Tobago', code: 'tt' },
+            { name: 'Tunisia', code: 'tn' },
+            { name: 'Turkey', code: 'tr' },
+            { name: 'Turkmenistan', code: 'tm' },
+            { name: 'Tuvalu', code: 'tv' },
+            { name: 'Uganda', code: 'ug' },
+            { name: 'Ukraine', code: 'ua' },
+            { name: 'United Arab Emirates', code: 'ae' },
+            { name: 'United Kingdom', code: 'gb' },
+            { name: 'United States', code: 'us' },
+            { name: 'Uruguay', code: 'uy' },
+            { name: 'Uzbekistan', code: 'uz' },
+            { name: 'Vanuatu', code: 'vu' },
+            { name: 'Vatican City', code: 'va' },
+            { name: 'Venezuela', code: 've' },
+            { name: 'Vietnam', code: 'vn' },
+            { name: 'Yemen', code: 'ye' },
+            { name: 'Zambia', code: 'zm' },
+            { name: 'Zimbabwe', code: 'zw' }
+        ];
+
+        let currentRound = 0;
+        let score = 0;
+        let streak = 0;
+        let bestStreak = 0;
+        let coinsEarned = 0;
+        let correctAnswer = null;
+        let answered = false;
+        let roundCountries = [];
+
+        const roundDisplay = document.getElementById('roundDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const streakDisplay = document.getElementById('streakDisplay');
+        const coinsDisplay = document.getElementById('coinsDisplay');
+        const roundLabel = document.getElementById('roundLabel');
+        const flagImg = document.getElementById('flagImg');
+        const choicesContainer = document.getElementById('choicesContainer');
+        const feedback = document.getElementById('feedback');
+        const streakInfo = document.getElementById('streakInfo');
+        const startBtn = document.getElementById('startBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const overlay = document.getElementById('gameOverOverlay');
+
+        function getCoins() { return parseInt(localStorage.getItem(COINS_KEY) || '0'); }
+        function addCoins(amount) {
+            localStorage.setItem(COINS_KEY, (getCoins() + amount).toString());
+            coinsDisplay.textContent = getCoins();
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function pickRandom(arr, n) {
+            return shuffle(arr).slice(0, n);
+        }
+
+        coinsDisplay.textContent = getCoins();
+
+        const roundSelect = document.getElementById('roundSelect');
+
+        function startGame() {
+            TOTAL_ROUNDS = parseInt(roundSelect.value);
+            currentRound = 0;
+            score = 0;
+            streak = 0;
+            bestStreak = 0;
+            coinsEarned = 0;
+            scoreDisplay.textContent = '0';
+            streakDisplay.textContent = '0';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            streakInfo.textContent = '';
+            overlay.classList.remove('active');
+            startBtn.textContent = 'New Game';
+            nextRound();
+        }
+
+        function nextRound() {
+            if (currentRound >= TOTAL_ROUNDS) {
+                endGame();
+                return;
+            }
+
+            currentRound++;
+            answered = false;
+            roundDisplay.textContent = currentRound + '/' + TOTAL_ROUNDS;
+            roundLabel.textContent = 'Which country does this flag belong to?';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+
+            const choices = pickRandom(COUNTRIES, 4);
+            correctAnswer = choices[Math.floor(Math.random() * choices.length)];
+
+            flagImg.src = 'https://flagcdn.com/w320/' + correctAnswer.code + '.png';
+            flagImg.alt = 'Country flag';
+            flagImg.style.display = 'block';
+            flagImg.onerror = function () {
+                this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect fill="%23333" width="240" height="160"/><text fill="%23999" font-size="16" x="50%" y="50%" text-anchor="middle" dy=".3em">Flag unavailable</text></svg>';
+            };
+
+            choicesContainer.innerHTML = '';
+            choices.forEach(country => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = country.name;
+                btn.dataset.code = country.code;
+                btn.addEventListener('click', () => handleAnswer(btn, country));
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedBtn, country) {
+            if (answered) return;
+            answered = true;
+
+            const buttons = choicesContainer.querySelectorAll('.choice-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.code === correctAnswer.code) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (country.code === correctAnswer.code) {
+                score++;
+                streak++;
+                if (streak > bestStreak) bestStreak = streak;
+                scoreDisplay.textContent = score;
+                streakDisplay.textContent = streak;
+                feedback.textContent = 'Correct!';
+                feedback.className = 'feedback correct';
+                if (streak >= 3) {
+                    streakInfo.textContent = streak + ' in a row!';
+                } else {
+                    streakInfo.textContent = '';
+                }
+            } else {
+                selectedBtn.classList.add('wrong');
+                streak = 0;
+                streakDisplay.textContent = '0';
+                feedback.textContent = 'Wrong! It was ' + correctAnswer.name;
+                feedback.className = 'feedback wrong';
+                streakInfo.textContent = '';
+            }
+
+            setTimeout(nextRound, 1500);
+        }
+
+        function endGame() {
+            coinsEarned = score * COINS_PER_CORRECT;
+            addCoins(coinsEarned);
+
+            flagImg.style.display = 'none';
+            roundLabel.textContent = 'Game Over!';
+            choicesContainer.innerHTML = '';
+            feedback.textContent = '';
+            streakInfo.textContent = '';
+
+            document.getElementById('endTitle').textContent =
+                score === TOTAL_ROUNDS ? 'Perfect Score!' :
+                    score >= 7 ? 'Great Job!' :
+                        score >= 4 ? 'Not Bad!' : 'Keep Practicing!';
+            document.getElementById('endMsg').textContent =
+                'You scored ' + score + ' out of ' + TOTAL_ROUNDS +
+                (bestStreak >= 3 ? ' (Best streak: ' + bestStreak + ')' : '');
+            document.getElementById('endCoins').textContent =
+                coinsEarned > 0 ? '+' + coinsEarned + ' \uD83E\uDE99' : 'No coins earned';
+
+            overlay.classList.add('active');
+        }
+
+        startBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', startGame);
+    </script>
+</body>
+
+</html>
