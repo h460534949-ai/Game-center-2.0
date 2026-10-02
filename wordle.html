@@ -283,8 +283,9 @@
 
         <div class="word-info" id="wordInfo"></div>
 
-        <div style="margin-top: 16px;">
+        <div style="margin-top: 16px; display: flex; gap: 12px;">
             <button class="game-btn" id="newWordBtn">New Word</button>
+            <button class="game-btn secondary" id="clearHistoryBtn">Clear History</button>
         </div>
     </div>
 
@@ -404,6 +405,7 @@
         let streak = parseInt(localStorage.getItem('wordleStreak') || '0');
         let pendingTimeouts = []; // Track all pending timeouts for cleanup
         let generation = 0; // Generation counter to invalidate stale callbacks
+        let allGuesses = []; // Store all previous guesses to preserve them
 
         // Currency & Inventory system
         const COINS_KEY = 'gamezone_coins';
@@ -477,6 +479,15 @@
         }
 
         function initGame() {
+            // Save completed guesses before resetting
+            if (currentRow > 0 && !gameOver) {
+                // Save any partially filled row as well
+                const partialGuess = grid[currentRow].join('');
+                if (partialGuess.length > 0) {
+                    allGuesses.push({ guess: partialGuess, row: currentRow, partial: true });
+                }
+            }
+
             // Increment generation to invalidate ALL stale callbacks
             generation++;
             // Cancel all pending timeouts from previous game
@@ -511,6 +522,38 @@
                 }
                 boardEl.appendChild(row);
             }
+
+            // Restore previous guesses
+            allGuesses.forEach(guessInfo => {
+                if (guessInfo.row < MAX_GUESSES) {
+                    const guess = guessInfo.guess;
+                    for (let c = 0; c < guess.length && c < WORD_LENGTH; c++) {
+                        const tile = document.getElementById(`tile-${guessInfo.row}-${c}`);
+                        if (tile) {
+                            tile.textContent = guess[c];
+                            tile.classList.add('filled');
+                            if (guessInfo.partial) {
+                                tile.style.opacity = '0.5';
+                            } else if (guessInfo.result) {
+                                // Restore the color coding
+                                tile.classList.add(guessInfo.result[c]);
+                                // Update keyboard state
+                                const letter = guess[c];
+                                const state = guessInfo.result[c];
+                                const prev = keyStates[letter];
+                                if (state === 'correct') {
+                                    keyStates[letter] = 'correct';
+                                } else if (state === 'present' && prev !== 'correct') {
+                                    keyStates[letter] = 'present';
+                                } else if (!prev) {
+                                    keyStates[letter] = 'absent';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            updateKeyboard();
         }
 
         function buildKeyboard() {
@@ -643,6 +686,8 @@
                     resultOverlay.classList.add('active');
                     wordInfoEl.textContent = `The word was: "${targetWord.toUpperCase()}"`;
                     updateHintButtons();
+                    // Save completed guess
+                    allGuesses.push({ guess: guess, row: revealRow, partial: false, result: result });
                 } else if (revealRow >= MAX_GUESSES - 1) {
                     gameOver = true;
                     streak = 0;
@@ -650,11 +695,15 @@
                     streakEl.textContent = streak;
                     addCoins(LOSE_COINS);
                     resultTitle.textContent = 'Game Over';
-                    resultMsg.innerHTML = `The word was: "${targetWord.toUpperCase()}"<div class="coins-earned">+${LOSE_COINS} 🪙</div>`;
+                    resultMsg.innerHTML = `The word was: "${targetWord.toUpperCase()}"<div class="coins-earned">+${LOSE_COINS} </div>`;
                     resultOverlay.classList.add('active');
                     wordInfoEl.textContent = `Better luck next time!`;
                     updateHintButtons();
+                    // Save completed guess
+                    allGuesses.push({ guess: guess, row: revealRow, partial: false, result: result });
                 } else {
+                    // Save completed guess
+                    allGuesses.push({ guess: guess, row: revealRow, partial: false, result: result });
                     currentRow++;
                     currentCol = 0;
                 }
@@ -779,6 +828,10 @@
         // Buttons
         playAgainBtn.addEventListener('click', initGame);
         newWordBtn.addEventListener('click', initGame);
+        clearHistoryBtn.addEventListener('click', () => {
+            allGuesses = [];
+            initGame();
+        });
 
         // Start
         initGame();
